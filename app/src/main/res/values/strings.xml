@@ -1,0 +1,17 @@
+<resources>
+    <string name="app_name">TVSetting</string>
+    <string name="title_tv_setting_avsys">A/V Setting</string>
+    <string name="label_tv_setting_av_resolution">Resolution</string>
+    <string name="label_tv_setting_av_display_area">Display Area</string>
+    <string name="label_tv_setting_av_audio_output">Audio Output</string>
+    <string name="label_tv_setting_audio_lpcm">LPCM</string>
+    <string name="label_tv_setting_audio_bypass">Audio Bypass</string>
+    <string name="label_tv_setting_action_keepit">Keep It</string>
+    <string name="label_tv_setting_action_restore">Restore</string>
+    <string name="label_tv_setting_action_justdoit">OK</string>
+    <string name="label_tv_setting_action_getit">Get It</string>
+    <string name="msg_tv_setting_display_area_tip_arrow">Press the [LEFT]/[RIGHT] button to zoom [out]/[in]</string>
+    <string name="msg_tv_setting_confirm_resolution">Wish to save this resolution?</string>
+    <string name="msg_tv_setting_change_resolution">Once no TV output signal on screen after switching,you can choose one of the methods to recover\n\n1.Recover automatically after doing nothing for 15 seconds;\n2.Press [BACK] button to recover immediately.</string>
+    <string name="msg_tv_setting_restore_resolution">seconds to restore.</string>
+</resources>

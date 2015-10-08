@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent" android:layout_height="match_parent">
+
+    <RelativeLayout
+        android:layout_width="540px"
+        android:layout_height="match_parent"
+        android:layout_centerInParent="true"
+        android:background="@drawable/tv_setting_list_selector">
+
+        <ImageView
+            android:id="@+id/tv_setting_value_selected"
+            android:layout_width="32px"
+            android:layout_height="wrap_content"
+            android:layout_centerVertical="true"
+            android:layout_marginLeft="32px"
+            android:gravity="center" />
+
+        <TextView
+            android:id="@+id/tv_setting_value_name"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_centerVertical="true"
+            android:layout_marginRight="64px"
+            android:layout_toRightOf="@+id/tv_setting_value_selected"
+            android:gravity="center"
+            android:textColor="@drawable/tv_setting_value_item_text"
+            android:textSize="30px" />
+
+    </RelativeLayout>
+
+</RelativeLayout>

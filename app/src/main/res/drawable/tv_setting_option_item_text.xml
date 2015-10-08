@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <!-- Font color when item lose focus -->
+    <item android:state_selected="false" android:color="#80FFFFFF"/>
+
+    <!-- Font color when item get focus -->
+    <item android:state_selected="true" android:color="@android:color/white"/>
+
+</selector>

@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent" android:layout_height="match_parent"
+    android:id="@+id/tv_setting_bg" android:background="@drawable/tv_setting_bg">
+
+    <TextView
+        android:id="@+id/tv_setting_title"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentTop="true"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="30px"
+        android:text="@string/title_tv_setting_avsys"
+        android:textColor="@android:color/white"
+        android:textSize="38px" />
+
+    <ListView
+        android:id="@+id/tv_setting_avsys_option_list"
+        android:layout_width="330px"
+        android:layout_height="320px"
+        android:layout_alignParentStart="true"
+        android:layout_marginLeft="150px"
+        android:layout_marginTop="230px"
+        android:divider="@null"
+        android:dividerHeight="0px"
+        android:listSelector="@android:color/transparent" />
+
+    <ListView
+        android:id="@+id/tv_setting_avsys_value_list"
+        android:layout_width="600px"
+        android:layout_height="460px"
+        android:layout_alignParentTop="true"
+        android:layout_marginLeft="80px"
+        android:layout_marginTop="180px"
+        android:layout_toRightOf="@+id/tv_setting_avsys_option_list"
+        android:divider="@null"
+        android:dividerHeight="0px"
+        android:listSelector="@android:color/transparent" />
+
+    <TextView
+        android:id="@+id/tv_setting_region_tip"
+        android:layout_width="300dp"
+        android:layout_height="wrap_content"
+        android:layout_centerInParent="true"
+        android:gravity="center"
+        android:text="@string/msg_tv_setting_display_area_tip_arrow"
+        android:textSize="32sp"
+        android:visibility="invisible" />
+
+</RelativeLayout>

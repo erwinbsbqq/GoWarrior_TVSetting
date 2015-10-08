@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <array name="tv_setting_digital_audio_output">
+        <item>@string/label_tv_setting_audio_lpcm</item>
+        <item>@string/label_tv_setting_audio_bypass</item>
+    </array>
+
+    <array name="tv_setting_confirm_resolution_buttons">
+        <item>@string/label_tv_setting_action_keepit</item>
+        <item>@string/label_tv_setting_action_restore</item>
+    </array>
+
+    <array name="tv_setting_change_resolution_buttons">
+        <item>@string/label_tv_setting_action_justdoit</item>
+        <item>@string/label_tv_setting_action_getit</item>
+    </array>
+
+</resources>
