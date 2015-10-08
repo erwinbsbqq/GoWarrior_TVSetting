@@ -4,6 +4,7 @@
     <modules>
       <module fileurl="file://$PROJECT_DIR$/GoWarrior_TVSetting.iml" filepath="$PROJECT_DIR$/GoWarrior_TVSetting.iml" />
       <module fileurl="file://$PROJECT_DIR$/app/app.iml" filepath="$PROJECT_DIR$/app/app.iml" />
+      <module fileurl="file://$PROJECT_DIR$/settinglibrary/settinglibrary.iml" filepath="$PROJECT_DIR$/settinglibrary/settinglibrary.iml" />
     </modules>
   </component>
 </project>

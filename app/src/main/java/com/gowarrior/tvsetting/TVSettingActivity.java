@@ -1,17 +1,24 @@
 package com.gowarrior.tvsetting;
 
+import android.alisdk.AliSettings;
 import android.animation.Animator;
 import android.animation.AnimatorInflater;
 import android.animation.AnimatorSet;
 import android.app.Activity;
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.View;
 import android.widget.AdapterView;
+import android.widget.BaseAdapter;
 import android.widget.ListView;
 import android.widget.SimpleAdapter;
+
+import com.gowarrior.settinglibrary.CommonDialog;
+import com.gowarrior.settinglibrary.OnDialogCountDownListener;
+import com.gowarrior.settinglibrary.OnDialogDoneListener;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -19,7 +26,8 @@ import java.util.HashMap;
 /**
  * Created by GoWarrior on 2015/6/25.
  */
-public class TVSettingActivity extends Activity {
+public class TVSettingActivity extends Activity implements OnDialogDoneListener,
+        OnDialogCountDownListener {
     private final static String LOGTAG = TVSettingActivity.class.getSimpleName();
 
     private int mOptionSel;
@@ -36,6 +44,18 @@ public class TVSettingActivity extends Activity {
     private View mBackground;
     private View mRegionTip;
 
+    private AliSettings mAliSettings;
+    private int mSettedResolution = 0;
+    private int mTobeSetResolution = 0;
+    private int mScaleSize = 0;
+    private int mSpdifSel = 0;
+    private SharedPreferences mSharePreferences;
+    private final static String NAME = "TVSetting";
+    private final static String KEY = "ShowTips";
+    private final static String TAG_DIALOG_CHANGE_RESOLUTION = "change-resolution";
+    private final static String TAG_DIALOG_CONFIRM_RESOLUTION = "confirm-resolution";
+    private boolean mShowTips;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -44,6 +64,62 @@ public class TVSettingActivity extends Activity {
         mBackground = findViewById(R.id.tv_setting_bg);
         mRegionTip = findViewById(R.id.tv_setting_region_tip);
         mContext = this;
+
+        try {
+            mAliSettings = new AliSettings();
+        } catch (Exception e) {
+            Log.e(LOGTAG, "new AliSettings failed!");
+        }
+
+        try {
+            int res = mAliSettings.getResolution();
+            switch (res) {
+                case AliSettings.RESOLUTION_720P50:
+                    mSettedResolution = 0;
+                    break;
+                case AliSettings.RESOLUTION_720P60:
+                    mSettedResolution = 1;
+                    break;
+                case AliSettings.RESOLUTION_1080P50:
+                    mSettedResolution = 2;
+                    break;
+                case AliSettings.RESOLUTION_1080P60:
+                    mSettedResolution = 3;
+                    break;
+                default:
+                    mSettedResolution = 0;
+                    break;
+            }
+        } catch (Exception e) {
+            Log.e(LOGTAG, "get resolution failed!");
+        }
+
+        try {
+            mScaleSize = mAliSettings.getScaleRatio();
+        } catch (Exception e) {
+            Log.e(LOGTAG, "get Scale ratio failed");
+        }
+
+        try {
+            int mSpdif = mAliSettings.getDigitalMode();
+            switch (mSpdif) {
+                case AliSettings.DIGITAL_MODE_PCM:
+                    mSpdifSel = 0;
+                    break;
+                case AliSettings.DIGITAL_MODE_BS:
+                    mSpdifSel = 1;
+                    break;
+                default:
+                    mSpdifSel = 0;
+                    break;
+            }
+        } catch (Exception e) {
+            Log.e(LOGTAG, "get digital mode failed");
+        }
+
+        mSharePreferences = mContext.getSharedPreferences(NAME, Activity.MODE_PRIVATE);
+        mShowTips = mSharePreferences.getBoolean(KEY, true);
+
         initListData();
         initOptionList();
         initValueList();
@@ -62,12 +138,24 @@ public class TVSettingActivity extends Activity {
 
         switch(keyCode) {
             case KeyEvent.KEYCODE_DPAD_LEFT:
+                if(mOptionList.isFocused() && 1 == mOptionList.getSelectedItemPosition()) {
+                    if(KeyEvent.ACTION_DOWN == event.getAction()) {
+                        changeScaleSize(-1);
+                    }
+                    return true;
+                }
                 if(mValueList.isFocused()) {
                     mOptionList.requestFocus();
                 }
                 return true;
 
             case KeyEvent.KEYCODE_DPAD_RIGHT:
+                if(mOptionList.isFocused() && 1 == mOptionList.getSelectedItemPosition()) {
+                    if(KeyEvent.ACTION_DOWN == event.getAction()) {
+                        changeScaleSize(1);
+                    }
+                    return true;
+                }
                 if(mOptionList.isFocused()) {
                     mValueList.requestFocus();
                 }
@@ -82,6 +170,54 @@ public class TVSettingActivity extends Activity {
                 break;
         }
         return super.dispatchKeyEvent(event);
+    }
+
+    @Override
+    public void onDialogDone(String tag, int id, String message) {
+        if (tag.equals(TAG_DIALOG_CHANGE_RESOLUTION)) {
+            if (0 == id) {
+                mShowTips = false;
+                mSharePreferences.edit().putBoolean(KEY, mShowTips);
+                mSharePreferences.edit().commit();
+            }
+            if (id >= 0) {
+                Log.i(LOGTAG, "apply the resolution after show tips");
+                try {
+                    setAliRes(mTobeSetResolution);
+                } catch (Exception e ) {
+                    Log.e(LOGTAG, "set resolution failed" + mTobeSetResolution);
+                }
+                CommonDialog.showDialog(R.string.msg_tv_setting_confirm_resolution,
+                        R.array.tv_setting_confirm_resolution_buttons, 1, R.style.SmallDialog,
+                        15000, 1000, TAG_DIALOG_CONFIRM_RESOLUTION, this);
+            }
+        } else if (tag.equals(TAG_DIALOG_CONFIRM_RESOLUTION)) {
+            if (0 == id) {
+                //save the resolution
+                Log.i(LOGTAG, "save the resolution");
+                mSettedResolution = mTobeSetResolution;
+            } else {
+                //discard the resolution
+                Log.i(LOGTAG, "discard the resolution");
+                try {
+                    setAliRes(mSettedResolution);
+                } catch (Exception e) {
+                    Log.e(LOGTAG, "restore previous resolution failed");
+                }
+                setValueListCheckItem(mTobeSetResolution, mSettedResolution);
+            }
+        }
+    }
+
+    @Override
+    public void onDialogCountDown(String tag, int remainTime, CommonDialog dialog) {
+        Log.v(LOGTAG, "onDialogCountDown: tag=" + tag + " id=" + remainTime);
+        if (tag.equals(TAG_DIALOG_CONFIRM_RESOLUTION)) {
+            String message = getResources().getString(R.string.msg_tv_setting_confirm_resolution);
+            message += " " + remainTime/1000 + getResources().
+                    getString(R.string.msg_tv_setting_restore_resolution);
+            dialog.setMessage(message);
+        }
     }
 
     private void initListData() {
@@ -138,7 +274,7 @@ public class TVSettingActivity extends Activity {
                         mBackground.setBackgroundResource(R.drawable.tv_setting_bg);
                         mRegionTip.setVisibility(View.INVISIBLE);
                         mValueList.setVisibility(View.VISIBLE);
-                        updateValueListAdapter(mResolutionList, 0);
+                        updateValueListAdapter(mResolutionList, getResolutionSel());
                     } else if (1 == position) {
                         mBackground.setBackgroundResource(R.drawable.tv_setting_region);
                         mRegionTip.setVisibility(View.VISIBLE);
@@ -147,7 +283,7 @@ public class TVSettingActivity extends Activity {
                         mBackground.setBackgroundResource(R.drawable.tv_setting_bg);
                         mRegionTip.setVisibility(View.INVISIBLE);
                         mValueList.setVisibility(View.VISIBLE);
-                        updateValueListAdapter(mSpdifList, 0);
+                        updateValueListAdapter(mSpdifList, getSpdifSel());
                     }
                 }
 
@@ -214,9 +350,19 @@ public class TVSettingActivity extends Activity {
             }
         });
         mValueList.setOnFocusChangeListener(mOnFocusChangeListener);
+        mValueList.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                if (0 == mOptionSel) {
+                    setResolutionSel(position);
+                } else if (2 == mOptionSel) {
+                    setSpdifSel(position);
+                }
+            }
+        });
 
-        updateValueListAdapter(mResolutionList, 0);
-        mValueSel = 0;
+        updateValueListAdapter(mResolutionList, getResolutionSel());
+        mValueSel = getResolutionSel();
     }
 
     private void updateValueListAdapter(ArrayList<String> listData, int selPosition) {
@@ -248,5 +394,120 @@ public class TVSettingActivity extends Activity {
             mAnimatorSet.setTarget(view);
             mAnimatorSet.start();
         }
+    }
+
+    /**
+     * Get current selected resolution
+     */
+    private int getResolutionSel() {
+        return mSettedResolution;
+    }
+
+    /**
+     * Set selected resolution
+     */
+    private void setResolutionSel(int sel) {
+        setValueListCheckItem(mSettedResolution, sel);
+        mTobeSetResolution = sel;
+
+        if (mShowTips) {
+            CommonDialog.showDialog(R.string.msg_tv_setting_change_resolution,
+                    R.array.tv_setting_change_resolution_buttons, 1,
+                    TAG_DIALOG_CHANGE_RESOLUTION, this);
+        } else {
+            Log.i(LOGTAG, "apply the resolution without show tips");
+            try {
+                setAliRes(mTobeSetResolution);
+            } catch (Exception e) {
+                Log.e(LOGTAG, "set resolution failed!" + mTobeSetResolution);
+            }
+            CommonDialog.showDialog(R.string.msg_tv_setting_confirm_resolution,
+                    R.array.tv_setting_confirm_resolution_buttons, 1, R.style.SmallDialog,
+                    15000, 1000, TAG_DIALOG_CONFIRM_RESOLUTION, this);
+        }
+    }
+
+    /**
+     * Set resolution
+     */
+    private void setAliRes(int pos) {
+        int res = -1;
+        switch (pos) {
+            case 0:
+                res = AliSettings.RESOLUTION_720P50;
+                break;
+            case 1:
+                res = AliSettings.RESOLUTION_720P60;
+                break;
+            case 2:
+                res = AliSettings.RESOLUTION_1080P50;
+                break;
+            case 3:
+                res = AliSettings.RESOLUTION_1080P60;
+                break;
+            default:
+                res = AliSettings.RESOLUTION_720P50;
+                break;
+        }
+        mAliSettings.setResolution(res);
+        mAliSettings.resetScreen(0);
+        mAliSettings.setScaleRatio(mScaleSize, 5);
+    }
+
+    //set selected picture when item is selected
+    private void setValueListCheckItem(int oldPos, int newPos) {
+        HashMap<String, Object> map = (HashMap<String, Object>)mValueList.getItemAtPosition(oldPos);
+        map.put("selected", 0);
+        map = (HashMap<String, Object>)mValueList.getItemAtPosition(newPos);
+        map.put("selected", R.drawable.common_item_selected);
+
+        ((BaseAdapter)mValueList.getAdapter()).notifyDataSetChanged();
+    }
+
+    /**
+     * change scale of output
+     */
+    private void changeScaleSize(int adjustment) {
+        int scaleSize = mScaleSize + adjustment;
+        if ((scaleSize >= 80) && (scaleSize <= 100)) {
+            mAliSettings.setScaleRatio(scaleSize, 5);
+            mScaleSize = scaleSize;
+        }
+    }
+
+    /**
+     * get current spdif mode
+     */
+    private int getSpdifSel() {
+        return mSpdifSel;
+    }
+
+    /**
+     * set selected spdif
+     */
+    private void setSpdifSel(int sel) {
+        Log.i(LOGTAG, "Set digital mode to " + sel);
+        setAliDigitalMode(sel);
+        setValueListCheckItem(mSpdifSel, sel);
+        mSpdifSel = sel;
+    }
+
+    /**
+     * Set Spdif
+     */
+    private void setAliDigitalMode(int sel) {
+        int mDigitalMode = 0;
+        switch (sel) {
+            case 0:
+                mDigitalMode = AliSettings.DIGITAL_MODE_PCM;
+                break;
+            case 1:
+                mDigitalMode = AliSettings.DIGITAL_MODE_BS;
+                break;
+            default:
+                mDigitalMode = AliSettings.DIGITAL_MODE_PCM;
+                break;
+        }
+        mAliSettings.setDigitalMode(mDigitalMode);
     }
 }
